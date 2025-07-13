@@ -1,76 +1,176 @@
-<style>
-  body {
-    font-family: "Segoe UI", sans-serif;
-    background: #fff0f5; /* fondo rosado pastel */
-    color: #333;
-    padding: 40px;
-    margin: 0;
-  }
-
-  h1 {
-    text-align: center;
-    color: #c2185b;
-    margin-bottom: 30px;
-  }
-
-  .semestre-separador {
-    background-color: #f8bbd0;
-    color: #6a1b4d;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 1.2em;
-    margin-top: 40px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
-  }
-
-  .semestre {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 15px;
-  }
-
-  .ramo {
-    padding: 10px 15px;
-    border: 2px solid #f48fb1;
-    border-radius: 15px;
-    background: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.95em;
-    box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
-    min-width: 180px;
-    text-align: center;
-  }
-
-  .ramo:hover:not(:disabled) {
-    background-color: #ffeef5;
-    transform: scale(1.02);
-  }
-
-  .ramo.aprobado {
-    background-color: #f06292;
-    color: white;
-    border-color: #c2185b;
-    text-decoration: line-through;
-  }
-
-  .ramo:disabled {
-    background-color: #fce4ec;
-    border-color: #f8bbd0;
-    color: #aaa;
-    cursor: not-allowed;
-    opacity: 0.7;
-  }
-
-  @media (max-width: 768px) {
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Malla Interactiva TM</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #ffe4f0;
+      color: #333;
+      padding: 20px;
+    }
+    .semestre-separador {
+      border-bottom: 2px solid #f48fb1;
+      margin-top: 30px;
+      padding-bottom: 5px;
+    }
     .semestre {
-      flex-direction: column;
-      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .ramo {
+      padding: 8px 15px;
+      border: 2px solid #f48fb1;
+      border-radius: 5px;
+      background: white;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+      user-select: none;
+    }
+    .ramo.aprobado {
+      background-color: #f48fb1;
+      color: white;
+      border-color: #c2185b;
+      text-decoration: line-through; /* Aquí está el tachado */
+    }
+    .ramo:disabled {
+      background-color: #fce4ec;
+      border-color: #f8bbd0;
+      color: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Curricular Interactiva TM</h1>
+  <div id="malla"></div>
+
+  <script>
+    const ramos = {
+      "Morfología": ["Morfología II"],
+      "GIS": ["GIS II"],
+      "Fundamentos de los procesos moleculares": ["Fundamentos de los procesos moleculares II"],
+      "Fundamentos de los procesos moleculares II": [
+        "Microbiologia I",
+        "Inmunologia I",
+        "Fundamentos biológicos de los procesos funcionales, sus alteraciones  y farmacología"
+      ],
+      "Física": ["Principios fundamentales de la instrumentación"],
+      "GIS II": ["GIS III"],
+      "Principios fundamentales de la instrumentación": ["Bioquímica clínica I"],
+      "Fundamentos biológicos de los procesos funcionales, sus alteraciones  y farmacología": ["Bioquímica clínica I", "Parasitologia I"],
+      "GIS III": ["GIS IV"],
+      "GIS IV": ["Investigación I", "Enfermedades prioritarias. Aspectos legales"],
+      "Bioquímica clínica I": ["Bioquímica clínica II"],
+      "Parasitologia I": ["Parasitologia II"],
+      "Inmunologia I": ["Hematologia I"],
+      "Sistema digestivo": ["Microbiologia I"],
+      "Bioquímica clínica II": ["Bioquímica clínica III"],
+      "Hematologia I": ["Hematologia II"],
+      "Hematologia II": ["Banco de sangre I"],
+      "Sistema cardiovascular": ["Enfermedades prioritarias. Aspectos legales"],
+      "Investigación I": ["Investigación II"],
+      "Microbiologia I": ["Microbiologia II"],
+      "Sistema inmune": ["Enfermedades prioritarias. Aspectos legales"],
+      "Seminario de gestión e investigación I": ["Seminario de gestión e investigación II"],
+      "Banco de sangre I": ["Banco de sangre II"],
+      "Seminario de gestión e investigación II": ["Práctica profesional"],
+      "Banco de sangre II": ["Práctica profesional"],
+      "Enfermedades prioritarias. Aspectos legales": ["Práctica profesional"]
+    };
+
+    const semestres = [
+      ["Morfología", "GIS", "Fundamentos de los procesos moleculares", "Química", "Matemáticas", "Introducción a tm"],
+      ["GIS II", "Morfología II", "Fundamentos de los procesos moleculares II", "Física"],
+      ["GIS III", "Formación efectivo", "Fundamentos biológicos de los procesos funcionales, sus alteraciones  y farmacología", "Principios fundamentales de la instrumentación"],
+      ["GIS IV", "Sistema genito-urinario", "Bioquímica clínica I", "Parasitologia I", "Inmunologia I"],
+      ["Sistema digestivo", "Bioquímica clínica II", "Hematologia I", "Formación de electivo"],
+      ["Sistema cardiovascular", "Investigación I", "Bioquímica clínica III", "Hematologia II"],
+      ["Sistema endocrino y reproductor", "Investigación II", "Parasitologia II", "Microbiologia I"],
+      ["Sistema inmune", "Seminario de gestión e investigación I"]
+    ];
+
+    // Invertimos para saber requisitos de cada ramo
+    const requisitosPorRamo = {};
+
+    for (const [padre, hijos] of Object.entries(ramos)) {
+      hijos.forEach(hijo => {
+        if (!requisitosPorRamo[hijo]) requisitosPorRamo[hijo] = [];
+        requisitosPorRamo[hijo].push(padre);
+      });
     }
 
-    .ramo {
-      width: 90%;
+    // Estado ramos aprobados
+    let ramosAprobados = JSON.parse(localStorage.getItem("ramosAprobados") || "[]");
+
+    // Saber si un ramo está desbloqueado (sin requisitos o con todos aprobados)
+    function estaDesbloqueado(ramo) {
+      const reqs = requisitosPorRamo[ramo];
+      if (!reqs || reqs.length === 0) return true;
+      return reqs.every(r => ramosAprobados.includes(r));
     }
-  }
-</style>
+
+    // Renderizar la malla
+    function renderizarMalla() {
+      const contenedor = document.getElementById("malla");
+      contenedor.innerHTML = "";
+
+      semestres.forEach((semestre, i) => {
+        const sep = document.createElement("h2");
+        sep.textContent = `Semestre ${i + 1}`;
+        sep.className = "semestre-separador";
+        contenedor.appendChild(sep);
+
+        const divSem = document.createElement("div");
+        divSem.className = "semestre";
+
+        semestre.forEach(ramo => {
+          const btn = document.createElement("button");
+          btn.textContent = ramo;
+          btn.className = "ramo";
+
+          if (ramosAprobados.includes(ramo)) {
+            btn.classList.add("aprobado");
+            btn.disabled = false;
+          } else if (estaDesbloqueado(ramo)) {
+            btn.classList.remove("aprobado");
+            btn.disabled = false;
+          } else {
+            btn.disabled = true;
+          }
+
+          btn.onclick = () => {
+            if (!btn.disabled) {
+              toggleAprobado(ramo);
+              renderizarMalla();
+            }
+          };
+
+          divSem.appendChild(btn);
+        });
+
+        contenedor.appendChild(divSem);
+      });
+    }
+
+    // Alternar aprobado/no aprobado
+    function toggleAprobado(ramo) {
+      if (ramosAprobados.includes(ramo)) {
+        ramosAprobados = ramosAprobados.filter(r => r !== ramo);
+      } else {
+        if (estaDesbloqueado(ramo)) {
+          ramosAprobados.push(ramo);
+        }
+      }
+      localStorage.setItem("ramosAprobados", JSON.stringify(ramosAprobados));
+    }
+
+    window.onload = () => {
+      renderizarMalla();
+    };
+  </script>
+</body>
+</html>
