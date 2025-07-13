@@ -1,4 +1,3 @@
-
 const ramos = {
   "Morfología": ["Morfología II"],
   "GIS": ["GIS II"],
@@ -46,30 +45,54 @@ const semestres = [
 ];
 
 const mallaContainer = document.getElementById("malla");
+const resetBtn = document.getElementById("resetBtn");
 const estado = {};
 
+// Cargar datos guardados
+const guardado = JSON.parse(localStorage.getItem("malla_aprobados") || "{}");
+
 function crearMalla() {
-  semestres.forEach((ramosSemestre, semestreIndex) => {
-    ramosSemestre.forEach(ramo => {
+  semestres.forEach((ramosSemestre, index) => {
+    const contenedorSemestre = document.createElement("div");
+    contenedorSemestre.className = "semestre";
+
+    const titulo = document.createElement("h2");
+    titulo.innerText = `Semestre ${index + 1}`;
+    contenedorSemestre.appendChild(titulo);
+
+    const fila = document.createElement("div");
+    fila.className = "fila-ramos";
+
+    ramosSemestre.forEach(nombre => {
       const div = document.createElement("div");
       div.className = "ramo bloqueado";
-      div.innerText = ramo;
-      div.dataset.nombre = ramo;
-      div.dataset.semestre = semestreIndex + 1;
-      div.addEventListener("click", () => aprobarRamo(ramo));
-      mallaContainer.appendChild(div);
-      estado[ramo] = {
+      div.innerText = nombre;
+      div.dataset.nombre = nombre;
+      div.addEventListener("click", () => aprobarRamo(nombre));
+      fila.appendChild(div);
+
+      estado[nombre] = {
         aprobado: false,
         elemento: div,
-        requisitos: encontrarRequisitos(ramo)
+        requisitos: encontrarRequisitos(nombre)
       };
     });
+
+    contenedorSemestre.appendChild(fila);
+    mallaContainer.appendChild(contenedorSemestre);
   });
 
-  // Desbloquear ramos sin requisitos
-  for (let ramo in estado) {
-    if (estado[ramo].requisitos.length === 0) {
-      desbloquearRamo(ramo);
+  // Cargar aprobados guardados
+  for (let nombre in guardado) {
+    if (guardado[nombre]) {
+      aprobarRamo(nombre, true);
+    }
+  }
+
+  // Desbloquear sin requisitos
+  for (let nombre in estado) {
+    if (estado[nombre].requisitos.length === 0 && !estado[nombre].aprobado) {
+      desbloquearRamo(nombre);
     }
   }
 }
@@ -84,14 +107,19 @@ function encontrarRequisitos(destino) {
   return requisitos;
 }
 
-function aprobarRamo(nombre) {
+function aprobarRamo(nombre, cargando = false) {
   const ramo = estado[nombre];
   if (!ramo || ramo.aprobado || ramo.elemento.classList.contains("bloqueado")) return;
+
   ramo.aprobado = true;
   ramo.elemento.classList.remove("bloqueado");
   ramo.elemento.classList.add("aprobado");
 
-  // Desbloquear los que dependen de este
+  if (!cargando) {
+    guardarEstado();
+  }
+
+  // Desbloquear los dependientes
   for (let dependiente in estado) {
     const requisitos = estado[dependiente].requisitos;
     if (requisitos.includes(nombre)) {
@@ -108,5 +136,18 @@ function desbloquearRamo(nombre) {
     ramo.elemento.classList.remove("bloqueado");
   }
 }
+
+function guardarEstado() {
+  const estadoGuardado = {};
+  for (let nombre in estado) {
+    estadoGuardado[nombre] = estado[nombre].aprobado;
+  }
+  localStorage.setItem("malla_aprobados", JSON.stringify(estadoGuardado));
+}
+
+resetBtn.addEventListener("click", () => {
+  localStorage.removeItem("malla_aprobados");
+  location.reload();
+});
 
 crearMalla();
